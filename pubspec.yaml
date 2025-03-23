@@ -1,0 +1,29 @@
+name: movies
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.7.2 <4.0.0'  # Asegúrate de usar un rango de versión válido
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.1.0  # Para hacer solicitudes HTTP a la API de TMDB
+  flutter_bloc: ^8.1.3  # Para implementar el patrón BLoC
+  equatable: ^2.0.5  # Para comparar objetos en BLoC
+  provider: ^6.0.0  # Para manejar el estado de la aplicación
+  flutter_dotenv: ^5.0.2  # Para manejar variables de entorno (como tu API key)
+  smooth_page_indicator: ^1.0.0+2 # Para implementar un indicador de página personalizado
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo.png  # Asegúrate de que la ruta sea correcta
+    - .env 
