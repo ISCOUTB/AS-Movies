@@ -5,7 +5,7 @@ import 'pages/discover_page.dart';
 import 'pages/categories_page.dart';
 import 'pages/search_page.dart';
 import 'pages/profile_page.dart';
-import 'pages/login_page.dart';
+import 'login.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env"); // Carga las variables de entorno
@@ -13,6 +13,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -20,17 +22,20 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MainScreen(),
+      home: const LoginScreen(), // Se inicia en la pantalla de login
     );
   }
 }
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
+  // ignore: unused_field
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
@@ -50,42 +55,37 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5, // Número de pestañas
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Row(
             children: [
-              // Logo como botón que no hace nada
               IconButton(
                 icon: Image.asset(
-                  'assets/images/logo.png', // Ruta del logo
-                  height: 100, // Altura del logo
+                  'assets/images/logo.png',
+                  height: 100,
                 ),
-                onPressed: () {
-                  // No hace nada
-                },
+                onPressed: () {},
               ),
-              // Espacio para empujar los botones a la derecha
-              Spacer(),
-              // Barra de navegación con nombres de páginas
+              const Spacer(),
               TabBar(
-                onTap: _onItemTapped, // Cambia la página al seleccionar una pestaña
-                isScrollable: true, // Permite desplazamiento si hay muchos botones
+                onTap: _onItemTapped,
+                isScrollable: true,
                 tabs: const [
-                  Tab(text: "Home"), // Nombre de la página
-                  Tab(text: "Descubrir"), // Nombre de la página
-                  Tab(text: "Categorías"), // Nombre de la página
-                  Tab(text: "Buscador"), // Nombre de la página
-                  Tab(text: "Perfil"), // Nombre de la página
+                  Tab(text: "Home"),
+                  Tab(text: "Descubrir"),
+                  Tab(text: "Categorías"),
+                  Tab(text: "Buscador"),
+                  Tab(text: "Perfil"),
                 ],
-                labelColor: Colors.black, // Color de las pestañas seleccionadas
-                unselectedLabelColor: Colors.grey, // Color de las pestañas no seleccionadas
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.grey,
               ),
             ],
           ),
         ),
         body: TabBarView(
-          children: _pages, // Las páginas corresponden a las pestañas
+          children: _pages,
         ),
       ),
     );
