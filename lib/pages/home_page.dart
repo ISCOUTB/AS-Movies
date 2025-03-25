@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                   : GridView.builder(
                       padding: EdgeInsets.symmetric(horizontal: 8), // Margen horizontal
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4, // Cuatro columnas
+                        crossAxisCount: 8, // Cuatro columnas
                         crossAxisSpacing: 8, // Espacio entre columnas
                         mainAxisSpacing: 8, // Espacio entre filas
                         childAspectRatio: 0.6, // Relación de aspecto (ancho/alto)
