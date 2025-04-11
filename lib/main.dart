@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'pages/home_page.dart';
-import 'pages/discover_page.dart';
-import 'pages/categories_page.dart';
-import 'pages/search_page.dart';
-import 'pages/profile_page.dart';
+  import 'pages/home_page.dart';
+  import 'pages/discover_page.dart';
+  import 'pages/categories_page.dart';
+  import 'pages/search_page.dart';
+  import 'pages/profile_page.dart';
 import 'login.dart';
 
 void main() async {
