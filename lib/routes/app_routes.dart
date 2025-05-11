@@ -6,6 +6,7 @@ import '../pages/categories_page.dart';
 import '../pages/search_page.dart';
 import '../pages/profile_page.dart';
 import '../login.dart';
+import '../main.dart';
 
 class AppRoutes {
   static const String login = '/login';
