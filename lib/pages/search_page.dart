@@ -136,7 +136,7 @@ class TMDBService {
   final String _apiKey = dotenv.env['TMDB_API_KEY']!;
 
   Future<List<Map<String, dynamic>>> searchMovies(String query) async {
-    final url = Uri.parse("$_baseUrl/search/movie?api_key=$_apiKey&query=$query");
+    final url = Uri.parse("$_baseUrl/search/movie?api_key=$_apiKey&query=$query&language=es-ES");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {

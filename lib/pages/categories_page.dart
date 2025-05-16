@@ -91,7 +91,7 @@ class _MoviesByCategoryPageState extends State<MoviesByCategoryPage> {
   Future<void> fetchMoviesByCategory() async {
     final String apiKey = dotenv.env['TMDB_API_KEY']!;
     final String url =
-        "https://api.themoviedb.org/3/discover/movie?api_key=$apiKey&with_genres=${widget.categoryId}";
+        "https://api.themoviedb.org/3/discover/movie?api_key=$apiKey&with_genres=${widget.categoryId}&language=es-ES";
     
     final response = await http.get(Uri.parse(url));
 
