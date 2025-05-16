@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -61,86 +62,131 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Elimina el ícono de retroceso (si lo hay)
-      ),
-      body: Container(
-        color: const Color.fromARGB(255, 2, 8, 29), // Fondo azul marino
-        padding: EdgeInsets.only(top: 10), // Espacio entre la barra de navegación y el contenido
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Título "Películas Populares"
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                "Películas Populares",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          "Películas Populares",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+            shadows: [
+              Shadow(
+                blurRadius: 8.0,
+                color: Colors.black.withOpacity(0.7),
+                offset: Offset(2, 2),
               ),
-            ),
-            SizedBox(height: 16), // Espacio entre el título y la cuadrícula
-            // Cuadrícula de películas
-            Expanded(
-              child: _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : GridView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 8), // Margen horizontal
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 8, // Cuatro columnas
-                        crossAxisSpacing: 8, // Espacio entre columnas
-                        mainAxisSpacing: 8, // Espacio entre filas
-                        childAspectRatio: 0.6, // Relación de aspecto (ancho/alto)
-                      ),
-                      itemCount: _movies.length,
-                      itemBuilder: (context, index) {
-                        final movie = _movies[index];
-                        final imageUrl = "https://image.tmdb.org/t/p/w500${movie['poster_path']}";
-                        return GestureDetector(
-                          onTap: () => _showMovieDetails(movie), // Mostrar detalles al hacer clic
-                          child: Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
-                                    child: Image.network(
-                                      imageUrl,
-                                      fit: BoxFit.cover,
-                                    ),
+            ],
+          ),
+        ),
+        automaticallyImplyLeading: false,
+      ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Fondo con la imagen de butacas (igual que login)
+          Image.asset(
+            'assets/images/login.png',
+            fit: BoxFit.cover,
+          ),
+          Container(
+            color: Colors.black.withOpacity(0.6),
+          ),
+          Center(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Calcula el ancho ideal para 5 tarjetas con separación
+                final cardSpacing = 16.0;
+                final cardsVisible = 5;
+                final cardWidth = (constraints.maxWidth * 0.85 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
+                final cardHeight = cardWidth * 1.5; // Proporción 2:3
+                return _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(height: 16),
+                          CarouselSlider.builder(
+                            itemCount: _movies.length,
+                            itemBuilder: (context, index, realIdx) {
+                              final movie = _movies[index];
+                              final imageUrl = "https://image.tmdb.org/t/p/w500${movie['poster_path']}";
+                              return GestureDetector(
+                                onTap: () => _showMovieDetails(movie),
+                                child: Card(
+                                  elevation: 6,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  color: Colors.black87,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      SizedBox(
+                                        width: cardWidth,
+                                        height: cardHeight,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                                          child: Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            alignment: Alignment.topCenter,
+                                            loadingBuilder: (context, child, progress) {
+                                              if (progress == null) return child;
+                                              return Center(child: CircularProgressIndicator());
+                                            },
+                                            errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.all(8),
+                                        child: Text(
+                                          movie['title'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 6.0,
+                                                color: Colors.black.withOpacity(0.8),
+                                                offset: Offset(1, 1),
+                                              ),
+                                            ],
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    movie['title'],
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2, // Máximo de 2 líneas para el título
-                                    overflow: TextOverflow.ellipsis, // Puntos suspensivos si el texto es muy largo
-                                  ),
-                                ),
-                              ],
+                              );
+                            },
+                            options: CarouselOptions(
+                              height: cardHeight + 48,
+                              enlargeCenterPage: false,
+                              viewportFraction: cardWidth / constraints.maxWidth,
+                              enableInfiniteScroll: true,
+                              initialPage: 2,
+                              pageSnapping: true,
+                              padEnds: false,
+                              disableCenter: true,
+                              scrollPhysics: BouncingScrollPhysics(),
                             ),
                           ),
-                        );
-                      },
-                    ),
+                          SizedBox(height: 16),
+                        ],
+                      );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

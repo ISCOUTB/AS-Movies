@@ -16,6 +16,7 @@ dependencies:
   provider: ^6.0.0  # Para manejar el estado de la aplicación
   flutter_dotenv: ^5.0.2  # Para manejar variables de entorno (como tu API key)
   smooth_page_indicator: ^1.0.0+2 # Para implementar un indicador de página personalizado
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:
