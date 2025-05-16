@@ -98,90 +98,56 @@ class _HomePageState extends State<HomePage> {
           Center(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                // Calcula el ancho ideal para 5 tarjetas con separación
+                // Calcula el ancho ideal para 5 tarjetas con separación (más pequeñas)
                 final cardSpacing = 16.0;
                 final cardsVisible = 5;
-                final cardWidth = (constraints.maxWidth * 0.85 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
-                final cardHeight = cardWidth * 1.5; // Proporción 2:3
+                final cardWidth = (constraints.maxWidth * 0.60 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
+                final cardHeight = cardWidth * 1.5; // Proporción más alta
                 return _isLoading
                     ? Center(child: CircularProgressIndicator())
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(height: 16),
-                          CarouselSlider.builder(
-                            itemCount: _movies.length,
-                            itemBuilder: (context, index, realIdx) {
-                              final movie = _movies[index];
-                              final imageUrl = "https://image.tmdb.org/t/p/w500${movie['poster_path']}";
-                              return GestureDetector(
-                                onTap: () => _showMovieDetails(movie),
-                                child: Card(
-                                  elevation: 6,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  color: Colors.black87,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      SizedBox(
-                                        width: cardWidth,
-                                        height: cardHeight,
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                                          child: Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.cover,
-                                            alignment: Alignment.topCenter,
-                                            loadingBuilder: (context, child, progress) {
-                                              if (progress == null) return child;
-                                              return Center(child: CircularProgressIndicator());
-                                            },
-                                            errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          movie['title'],
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            shadows: [
-                                              Shadow(
-                                                blurRadius: 6.0,
-                                                color: Colors.black.withOpacity(0.8),
-                                                offset: Offset(1, 1),
-                                              ),
-                                            ],
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
+                    : CarouselSlider.builder(
+                        itemCount: _movies.length,
+                        itemBuilder: (context, index, realIdx) {
+                          final movie = _movies[index];
+                          final imageUrl = "https://image.tmdb.org/t/p/w500${movie['poster_path']}";
+                          return GestureDetector(
+                            onTap: () => _showMovieDetails(movie),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4), // Espacio entre tarjetas
+                              child: Card(
+                                elevation: 6,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: EdgeInsets.zero, // Elimina cualquier margen extra
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.topCenter,
+                                    loadingBuilder: (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return Center(child: CircularProgressIndicator());
+                                    },
+                                    errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
                                   ),
                                 ),
-                              );
-                            },
-                            options: CarouselOptions(
-                              height: cardHeight + 48,
-                              enlargeCenterPage: false,
-                              viewportFraction: cardWidth / constraints.maxWidth,
-                              enableInfiniteScroll: true,
-                              initialPage: 2,
-                              pageSnapping: true,
-                              padEnds: false,
-                              disableCenter: true,
-                              scrollPhysics: BouncingScrollPhysics(),
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 16),
-                        ],
+                          );
+                        },
+                        options: CarouselOptions(
+                          height: cardHeight + 48,
+                          enlargeCenterPage: false,
+                          viewportFraction: cardWidth / constraints.maxWidth,
+                          enableInfiniteScroll: true,
+                          initialPage: 2,
+                          pageSnapping: true,
+                          padEnds: false,
+                          disableCenter: true,
+                          scrollPhysics: BouncingScrollPhysics(),
+                        ),
                       );
               },
             ),
