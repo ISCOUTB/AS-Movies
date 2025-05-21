@@ -101,8 +101,8 @@ class _HomePageState extends State<HomePage> {
                 // Calcula el ancho ideal para 5 tarjetas con separación (más pequeñas)
                 final cardSpacing = 16.0;
                 final cardsVisible = 5;
-                final cardWidth = (constraints.maxWidth * 0.60 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
-                final cardHeight = cardWidth * 1.5; // Proporción más alta
+                final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
+                final cardHeight = cardWidth * 1.2; // Proporción más ancha y menos alta
                 return _isLoading
                     ? Center(child: CircularProgressIndicator())
                     : CarouselSlider.builder(
