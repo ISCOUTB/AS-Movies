@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:animations/animations.dart';
+import '../models/movie.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -95,10 +96,13 @@ class _HomePageState extends State<HomePage> {
                     : CarouselSlider.builder(
                         itemCount: _movies.length,
                         itemBuilder: (context, index, realIdx) {
-                          final movie = _movies[index];
-                          final imageUrl = "https://image.tmdb.org/t/p/w500${movie['poster_path']}";
+                          final movieMap = _movies[index];
+                          final movie = Movie.fromJson(movieMap);
+                          final imageUrl = movie.posterPath != null
+                              ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
+                              : "https://image.tmdb.org/t/p/w500";
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4), // Espacio entre tarjetas
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: OpenContainer(
                               closedElevation: 6,
                               openElevation: 10,
@@ -110,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               transitionDuration: Duration(milliseconds: 500),
                               closedBuilder: (context, action) => GestureDetector(
-                                onTap: action, // Ejecuta la animación de expansión
+                                onTap: action,
                                 child: Stack(
                                   children: [
                                     ClipRRect(
@@ -133,14 +137,14 @@ class _HomePageState extends State<HomePage> {
                                       child: CircularPercentIndicator(
                                         radius: 22,
                                         lineWidth: 4,
-                                        percent: (movie['vote_average'] ?? 0) / 10.0,
+                                        percent: (movie.voteAverage) / 10.0,
                                         animation: true,
                                         animationDuration: 600,
                                         backgroundColor: Colors.black,
-                                        progressColor: _getScoreColor(movie['vote_average'] ?? 0),
+                                        progressColor: _getScoreColor(movie.voteAverage),
                                         circularStrokeCap: CircularStrokeCap.round,
                                         center: Text(
-                                          '${(movie['vote_average'] * 10).toInt()}%',
+                                          '${(movie.voteAverage * 10).toInt()}%',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -160,14 +164,18 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               openBuilder: (context, action) => FutureBuilder<Map<String, dynamic>>(
-                                future: _tmdbService.getMovieDetails(movie['id']),
+                                future: _tmdbService.getMovieDetails(movie.id),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) {
                                     return Center(child: CircularProgressIndicator());
                                   }
-                                  return _MovieDetailsExpanded(
-                                    movie: snapshot.data!,
-                                    imageUrl: imageUrl,
+                                  final detailedMovie = Movie.fromJson(snapshot.data!);
+                                  final detailedImageUrl = detailedMovie.posterPath != null
+                                      ? "https://image.tmdb.org/t/p/w500${detailedMovie.posterPath}"
+                                      : "https://image.tmdb.org/t/p/w500";
+                                  return MovieDetailsExpanded(
+                                    movie: detailedMovie,
+                                    imageUrl: detailedImageUrl,
                                     onClose: () => Navigator.of(context).pop(),
                                   );
                                 },
@@ -191,105 +199,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MovieDetailsExpanded extends StatelessWidget {
-  final Map<String, dynamic> movie;
-  final String imageUrl;
-  final VoidCallback onClose;
-
-  const _MovieDetailsExpanded({required this.movie, required this.imageUrl, required this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    final genres = (movie['genres'] as List?)?.map((g) => g['name']).join(', ') ?? '';
-    final directors = (movie['credits']?['crew'] as List?)?.where((c) => c['job'] == 'Director').map((c) => c['name']).join(', ') ?? '';
-    return Material(
-      color: Colors.black.withOpacity(0.95),
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                imageUrl,
-                width: 180,
-                height: 260,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 180,
-                  height: 260,
-                  color: Colors.grey[800],
-                  child: Icon(Icons.broken_image, color: Colors.white, size: 48),
-                ),
-              ),
-            ),
-            SizedBox(width: 32),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    movie['title'] ?? '',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.star, color: Colors.amber, size: 24),
-                      SizedBox(width: 6),
-                      Text(
-                        (movie['vote_average']?.toStringAsFixed(1) ?? '0'),
-                        style: TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Fecha de estreno: ${movie['release_date'] ?? ''}',
-                    style: TextStyle(fontSize: 16, color: Colors.white70),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Directores: $directors',
-                    style: TextStyle(fontSize: 16, color: Colors.white70),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Categorías: $genres',
-                    style: TextStyle(fontSize: 16, color: Colors.white70),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    movie['overview'] ?? '',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                    maxLines: 8,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 24),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: ElevatedButton.icon(
-                      onPressed: onClose,
-                      icon: Icon(Icons.close),
-                      label: Text('Cerrar'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
+import '../models/movie.dart';
+import 'package:animations/animations.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -40,39 +42,6 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _showMovieDetails(Map<String, dynamic> movie) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(movie['title']),
-          content: SingleChildScrollView(
-            child: Column(
-              children: [
-                movie['poster_path'] != null
-                    ? Image.network(
-                        "https://image.tmdb.org/t/p/w500${movie['poster_path']}",
-                        height: 200,
-                      )
-                    : SizedBox(),
-                SizedBox(height: 10),
-                Text(movie['overview'] ?? "Sin descripción"),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("Cerrar"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,24 +72,71 @@ class _SearchPageState extends State<SearchPage> {
                 ? Center(child: CircularProgressIndicator())
                 : _searchResults.isEmpty
                     ? Center(child: Text("No hay resultados"))
-                    : ListView.builder(
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          final movie = _searchResults[index];
-                          final imageUrl =
-                              "https://image.tmdb.org/t/p/w500${movie['poster_path']}";
-
-                          return ListTile(
-                            leading: movie['poster_path'] != null
-                                ? Image.network(imageUrl, width: 50)
-                                : Icon(Icons.movie),
-                            title: Text(movie['title']),
-                            subtitle: Text(
-                              movie['overview'],
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Scrollbar(
+                            thumbVisibility: true,
+                            child: GridView.builder(
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 7,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 20,
+                                childAspectRatio: 0.7,
+                              ),
+                              itemCount: _searchResults.length,
+                              physics: AlwaysScrollableScrollPhysics(),
+                              shrinkWrap: false,
+                              itemBuilder: (context, index) {
+                                final movieMap = _searchResults[index];
+                                final movie = Movie.fromJson(movieMap);
+                                final imageUrl = movie.posterPath != null
+                                    ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
+                                    : '';
+                                return AnimatedSlide(
+                                  offset: Offset(0, 0.2),
+                                  duration: Duration(milliseconds: 300 + index * 60),
+                                  curve: Curves.easeOut,
+                                  child: AnimatedOpacity(
+                                    opacity: 1.0,
+                                    duration: Duration(milliseconds: 300 + index * 60),
+                                    child: OpenContainer(
+                                      closedElevation: 6,
+                                      openElevation: 10,
+                                      closedShape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      openShape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      transitionDuration: Duration(milliseconds: 500),
+                                      closedBuilder: (context, action) => GestureDetector(
+                                        onTap: action,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: imageUrl.isNotEmpty
+                                              ? Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover,
+                                                  alignment: Alignment.topCenter,
+                                                  errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                                )
+                                              : Container(
+                                                  color: Colors.grey[800],
+                                                  child: Icon(Icons.movie, color: Colors.white, size: 48),
+                                                ),
+                                        ),
+                                      ),
+                                      openBuilder: (context, action) => MovieDetailsExpanded(
+                                        movie: movie,
+                                        imageUrl: imageUrl,
+                                        onClose: () => Navigator.of(context).pop(),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                            onTap: () => _showMovieDetails(movie),
                           );
                         },
                       ),
