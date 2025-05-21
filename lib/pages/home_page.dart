@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -57,6 +58,16 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  Color _getScoreColor(num score) {
+    if (score >= 7.0) {
+      return Colors.greenAccent.shade400;
+    } else if (score >= 5.0) {
+      return Colors.orangeAccent.shade200;
+    } else {
+      return Colors.redAccent.shade200;
+    }
   }
 
   @override
@@ -120,18 +131,52 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 margin: EdgeInsets.zero, // Elimina cualquier margen extra
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    imageUrl,
-                                    fit: BoxFit.cover,
-                                    alignment: Alignment.topCenter,
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return Center(child: CircularProgressIndicator());
-                                    },
-                                    errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
-                                  ),
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        imageUrl,
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topCenter,
+                                        loadingBuilder: (context, child, progress) {
+                                          if (progress == null) return child;
+                                          return Center(child: CircularProgressIndicator());
+                                        },
+                                        errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                      ),
+                                    ),
+                                    // Puntuación de usuarios en la esquina superior izquierda
+                                    Positioned(
+                                      top: 8,
+                                      left: 8,
+                                      child: CircularPercentIndicator(
+                                        radius: 22,
+                                        lineWidth: 4,
+                                        percent: (movie['vote_average'] ?? 0) / 10.0,
+                                        animation: true,
+                                        animationDuration: 600,
+                                        backgroundColor: Colors.black,
+                                        progressColor: _getScoreColor(movie['vote_average'] ?? 0),
+                                        circularStrokeCap: CircularStrokeCap.round,
+                                        center: Text(
+                                          '${(movie['vote_average'] * 10).toInt()}%',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 4,
+                                                color: Colors.black,
+                                                offset: Offset(1, 1),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
