@@ -4,8 +4,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import '../models/movie.dart';
 import 'package:animations/animations.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
+
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -96,8 +97,8 @@ class _SearchPageState extends State<SearchPage> {
                     onSelected: (suggestion) {
                       setState(() {
                         _searchController.text = suggestion['title'] ?? '';
-                        _searchResults = [suggestion];
                       });
+                      _searchMovies(suggestion['title'] ?? '');
                     },
                     emptyBuilder: (context) => Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -117,6 +118,9 @@ class _SearchPageState extends State<SearchPage> {
                           filled: true,
                           fillColor: Colors.white,
                         ),
+                        onSubmitted: (value) {
+                          _searchMovies(value); // Buscar al presionar enter
+                        },
                       );
                     },
                   ),
@@ -128,105 +132,73 @@ class _SearchPageState extends State<SearchPage> {
                           ? Center(child: Text("No hay resultados"))
                           : LayoutBuilder(
                               builder: (context, constraints) {
-                                return Scrollbar(
-                                  thumbVisibility: true,
-                                  child: GridView.builder(
-                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 7,
-                                      crossAxisSpacing: 12,
-                                      mainAxisSpacing: 20,
-                                      childAspectRatio: 0.7,
-                                    ),
-                                    itemCount: _searchResults.length,
-                                    physics: AlwaysScrollableScrollPhysics(),
-                                    shrinkWrap: false,
-                                    itemBuilder: (context, index) {
-                                      final movieMap = _searchResults[index];
-                                      final movie = Movie.fromJson(movieMap);
-                                      final imageUrl = movie.posterPath != null
-                                          ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
-                                          : '';
-                                      return AnimatedSlide(
-                                        offset: Offset(0, 0.2),
-                                        duration: Duration(milliseconds: 300 + index * 60),
-                                        curve: Curves.easeOut,
-                                        child: AnimatedOpacity(
-                                          opacity: 1.0,
-                                          duration: Duration(milliseconds: 300 + index * 60),
-                                          child: OpenContainer(
-                                            closedElevation: 6,
-                                            openElevation: 10,
-                                            closedShape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            openShape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(24),
-                                            ),
-                                            transitionDuration: Duration(milliseconds: 500),
-                                            closedBuilder: (context, action) => GestureDetector(
-                                              onTap: action,
-                                              child: Stack(
-                                                children: [
-                                                  ClipRRect(
-                                                    borderRadius: BorderRadius.circular(12),
-                                                    child: imageUrl.isNotEmpty
-                                                        ? Image.network(
-                                                            imageUrl,
-                                                            fit: BoxFit.cover,
-                                                            alignment: Alignment.topCenter,
-                                                            errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
-                                                          )
-                                                        : Container(
-                                                            color: Colors.grey[800],
-                                                            child: Icon(Icons.movie, color: Colors.white, size: 48),
-                                                          ),
+                                final cardSpacing = 16.0;
+                                final cardsVisible = 5;
+                                final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
+                                final cardHeight = cardWidth * 1.2;
+                                return Center(
+                                  child: AnimatedOpacity(
+                                    opacity: _searchResults.isNotEmpty ? 1.0 : 0.0,
+                                    duration: Duration(milliseconds: 500),
+                                    child: Container(
+                                      constraints: BoxConstraints(
+                                        maxWidth: constraints.maxWidth * 0.70,
+                                      ),
+                                      child: CarouselSlider.builder(
+                                        itemCount: _searchResults.length,
+                                        itemBuilder: (context, index, realIdx) {
+                                          final movieMap = _searchResults[index];
+                                          final movie = Movie.fromJson(movieMap);
+                                          final imageUrl = movie.posterPath != null
+                                              ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
+                                              : "https://image.tmdb.org/t/p/w500";
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                                            child: OpenContainer(
+                                              closedElevation: 6,
+                                              openElevation: 10,
+                                              closedShape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              openShape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(24),
+                                              ),
+                                              transitionDuration: Duration(milliseconds: 500),
+                                              closedBuilder: (context, action) => GestureDetector(
+                                                onTap: action,
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  child: Image.network(
+                                                    imageUrl,
+                                                    width: cardWidth,
+                                                    height: cardHeight,
+                                                    fit: BoxFit.cover,
+                                                    alignment: Alignment.topCenter,
+                                                    errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
                                                   ),
-                                                  Positioned(
-                                                    top: 8,
-                                                    left: 8,
-                                                    child: CircularPercentIndicator(
-                                                      radius: 22,
-                                                      lineWidth: 4,
-                                                      percent: (movie.voteAverage) / 10.0,
-                                                      animation: true,
-                                                      animationDuration: 600,
-                                                      backgroundColor: Colors.black,
-                                                      progressColor: movie.voteAverage >= 7.0
-                                                          ? Colors.greenAccent.shade400
-                                                          : movie.voteAverage >= 5.0
-                                                              ? Colors.orangeAccent.shade200
-                                                              : Colors.redAccent.shade200,
-                                                      circularStrokeCap: CircularStrokeCap.round,
-                                                      center: Text(
-                                                        '${(movie.voteAverage * 10).toInt()}%',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 13,
-                                                          shadows: [
-                                                            Shadow(
-                                                              blurRadius: 4,
-                                                              color: Colors.black,
-                                                              offset: Offset(1, 1),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
+                                                ),
+                                              ),
+                                              openBuilder: (context, action) => MovieDetailsExpanded(
+                                                movie: movie,
+                                                imageUrl: imageUrl,
+                                                onClose: () => Navigator.of(context).pop(),
                                               ),
                                             ),
-                                            openBuilder: (context, action) => MovieDetailsExpanded(
-                                              movie: movie,
-                                              imageUrl: imageUrl,
-                                              onClose: () => Navigator.of(context).pop(),
-                                            ),
-                                          ),
+                                          );
+                                        },
+                                        options: CarouselOptions(
+                                          height: cardHeight + 48,
+                                          enlargeCenterPage: false,
+                                          viewportFraction: cardWidth / (constraints.maxWidth * 0.70),
+                                          enableInfiniteScroll: false,
+                                          initialPage: 2,
+                                          pageSnapping: true,
+                                          padEnds: false,
+                                          disableCenter: true,
+                                          scrollPhysics: BouncingScrollPhysics(),
                                         ),
-                                      );
-                                    },
+                                      ),
+                                    ),
                                   ),
                                 );
                               },
