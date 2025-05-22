@@ -75,15 +75,15 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(90),
+        preferredSize: Size.fromHeight(70), // Reduce la altura de la barra
         child: AnimatedContainer(
           duration: Duration(milliseconds: 500),
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color(0xFFE0E0E0), // Blanco metálico apagado
-                Color(0xFFBDBDBD), // Gris claro para dar profundidad
+                Color(0xFFE0E0E0),
+                Color(0xFFBDBDBD),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -98,17 +98,17 @@ class _MainScreenState extends State<MainScreen> {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 0), // Quita padding vertical extra
               child: Row(
                 children: [
                   Image.asset(
                     'assets/images/logo.png',
-                    height: 60,
+                    height: 64, // Ajusta el logo para que encaje mejor en la barra más delgada
                   ),
                   const SizedBox(width: 32),
                   Expanded(
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: List.generate(_titles.length, (index) {
                         final isSelected = _selectedIndex == index;
                         return AnimatedContainer(

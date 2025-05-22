@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:animations/animations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/movie.dart';
 
 class HomePage extends StatefulWidget {
@@ -54,9 +55,10 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         title: Text(
           "Películas Populares",
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 32,
             fontWeight: FontWeight.bold,
@@ -69,6 +71,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+          textAlign: TextAlign.center,
         ),
         automaticallyImplyLeading: false,
       ),

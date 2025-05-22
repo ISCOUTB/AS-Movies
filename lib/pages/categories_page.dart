@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/movie.dart';
 import 'package:animations/animations.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CategoriesPage extends StatefulWidget {
   @override
@@ -77,66 +78,95 @@ class _CategoriesPageState extends State<CategoriesPage> {
           Container(
             color: Colors.black.withOpacity(0.7),
           ),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Column(
-                children: [
-                  SizedBox(height: 140), // Espacio para la barra de navegación superior
-                  Expanded(
-                    child: Center(
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 0),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 5,
-                          crossAxisSpacing: 18,
-                          mainAxisSpacing: 18,
-                          childAspectRatio: 2.8,
-                        ),
-                        itemCount: categories.length,
-                        itemBuilder: (context, index) {
-                          final isSelected = _selectedIndex == index && _isCategoryTapped;
-                          return AnimatedScale(
-                            scale: isSelected ? 1.12 : 1.0,
-                            duration: Duration(milliseconds: 180),
-                            curve: Curves.easeInOut,
-                            child: Card(
-                              elevation: 5,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              color: Colors.white,
-                              child: InkWell(
-                                onTap: () => _onCategoryTap(index),
-                                borderRadius: BorderRadius.circular(15),
-                                child: SizedBox(
-                                  height: 56,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(categories[index]['icon'], color: Colors.black, size: 26),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        categories[index]['name'],
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
+          Column(
+            children: [
+              SizedBox(height: 70),
+              Center(
+                child: Text(
+                  'Categorías',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 8.0,
+                        color: Colors.black.withOpacity(0.7),
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: 32),
+              Expanded(
+                child: Center(
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 0),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      crossAxisSpacing: 18,
+                      mainAxisSpacing: 18,
+                      childAspectRatio: 2.8,
+                    ),
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final isSelected = _selectedIndex == index && _isCategoryTapped;
+                      return AnimatedScale(
+                        scale: isSelected ? 1.12 : 1.0,
+                        duration: Duration(milliseconds: 180),
+                        curve: Curves.easeInOut,
+                        child: Card(
+                          elevation: 8,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          color: isSelected ? Colors.blueGrey[900] : Colors.white.withOpacity(0.92),
+                          shadowColor: Colors.blueGrey[200],
+                          child: InkWell(
+                            onTap: () => _onCategoryTap(index),
+                            borderRadius: BorderRadius.circular(18),
+                            child: SizedBox(
+                              height: 56,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? Colors.white : Colors.blueGrey[800],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: EdgeInsets.all(6),
+                                    child: Icon(
+                                      categories[index]['icon'],
+                                      color: isSelected ? Colors.blueGrey[900] : Colors.white,
+                                      size: 28,
+                                    ),
                                   ),
-                                ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    categories[index]['name'],
+                                    style: GoogleFonts.poppins(
+                                      color: isSelected ? Colors.white : Colors.blueGrey[900],
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
-                      ),
-                    ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              );
-            },
+                ),
+              ),
+            ],
           ),
         ],
       ),
