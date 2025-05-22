@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/movie.dart';
 import 'package:animations/animations.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class CategoriesPage extends StatefulWidget {
   @override
@@ -129,14 +130,51 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                   transitionDuration: Duration(milliseconds: 500),
                                   closedBuilder: (context, action) => GestureDetector(
                                     onTap: action,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        imageUrl,
-                                        fit: BoxFit.cover,
-                                        alignment: Alignment.topCenter,
-                                        errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
-                                      ),
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            alignment: Alignment.topCenter,
+                                            errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 8,
+                                          left: 8,
+                                          child: CircularPercentIndicator(
+                                            radius: 22,
+                                            lineWidth: 4,
+                                            percent: (movie.voteAverage) / 10.0,
+                                            animation: true,
+                                            animationDuration: 600,
+                                            backgroundColor: Colors.black,
+                                            progressColor: movie.voteAverage >= 7.0
+                                                ? Colors.greenAccent.shade400
+                                                : movie.voteAverage >= 5.0
+                                                    ? Colors.orangeAccent.shade200
+                                                    : Colors.redAccent.shade200,
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            center: Text(
+                                              '${(movie.voteAverage * 10).toInt()}%',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                shadows: [
+                                                  Shadow(
+                                                    blurRadius: 4,
+                                                    color: Colors.black,
+                                                    offset: Offset(1, 1),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   openBuilder: (context, action) => MovieDetailsExpanded(
@@ -161,45 +199,59 @@ class _CategoriesPageState extends State<CategoriesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Categorías"), backgroundColor: Colors.redAccent),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 3,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(title: Text("Categorías"), backgroundColor: Colors.transparent, elevation: 0),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/login.png',
+              fit: BoxFit.cover,
+            ),
           ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final isSelected = _selectedIndex == index && _isCategoryTapped;
-            return AnimatedScale(
-              scale: isSelected ? 1.12 : 1.0,
-              duration: Duration(milliseconds: 180),
-              curve: Curves.easeInOut,
-              child: Card(
-                elevation: 5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                color: isSelected ? Colors.redAccent : Colors.black87,
-                child: InkWell(
-                  onTap: () => _onCategoryTap(index),
-                  borderRadius: BorderRadius.circular(15),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(categories[index]['icon'], color: Colors.white),
-                      SizedBox(width: 10),
-                      Text(categories[index]['name'], style: TextStyle(color: Colors.white, fontSize: 16)),
-                    ],
-                  ),
-                ),
+          Container(
+            color: Colors.black.withOpacity(0.7),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 3,
               ),
-            );
-          },
-        ),
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final isSelected = _selectedIndex == index && _isCategoryTapped;
+                return AnimatedScale(
+                  scale: isSelected ? 1.12 : 1.0,
+                  duration: Duration(milliseconds: 180),
+                  curve: Curves.easeInOut,
+                  child: Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    color: isSelected ? Colors.white : Colors.white,
+                    child: InkWell(
+                      onTap: () => _onCategoryTap(index),
+                      borderRadius: BorderRadius.circular(15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(categories[index]['icon'], color: Colors.black),
+                          SizedBox(width: 10),
+                          Text(categories[index]['name'], style: TextStyle(color: Colors.black, fontSize: 16)),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
