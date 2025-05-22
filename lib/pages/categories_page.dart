@@ -35,8 +35,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
   ];
 
   Map<String, dynamic>? _selectedCategory;
-
-  // Estado para animación de selección
   int? _selectedIndex;
   bool _isCategoryTapped = false;
 
@@ -67,7 +65,27 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(title: Text("Categorías"), backgroundColor: Colors.transparent, elevation: 0),
+      appBar: AppBar(
+        title: Text(
+          "Categorías",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            shadows: [
+              Shadow(
+                blurRadius: 8.0,
+                color: Colors.black.withOpacity(0.7),
+                offset: Offset(2, 2),
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Stack(
         children: [
           Positioned.fill(
@@ -83,6 +101,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             builder: (context, constraints) {
               return Column(
                 children: [
+                  SizedBox(height: 32),
                   Expanded(
                     child: GridView.builder(
                       padding: EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -101,38 +120,22 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           curve: Curves.easeInOut,
                           child: Card(
                             elevation: 5,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                            color: isSelected ? Colors.white : Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            color: Colors.white,
                             child: InkWell(
-                              onTap: () async {
-                                setState(() {
-                                  _selectedCategory = categories[index];
-                                  _selectedIndex = index;
-                                  _isCategoryTapped = true;
-                                });
-                                await Future.delayed(Duration(milliseconds: 180));
-                                Navigator.of(context).push(
-                                  PageRouteBuilder(
-                                    transitionDuration: Duration(milliseconds: 500),
-                                    pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
-                                      opacity: animation,
-                                      child: CategoryMoviesPage(
-                                        category: categories[index],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                                setState(() {
-                                  _isCategoryTapped = false;
-                                });
-                              },
+                              onTap: () => _onCategoryTap(index),
                               borderRadius: BorderRadius.circular(15),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(categories[index]['icon'], color: Colors.black, size: 22),
                                   SizedBox(width: 8),
-                                  Text(categories[index]['name'], style: TextStyle(color: Colors.black, fontSize: 14)),
+                                  Text(
+                                    categories[index]['name'],
+                                    style: TextStyle(color: Colors.black, fontSize: 14),
+                                  ),
                                 ],
                               ),
                             ),
@@ -163,6 +166,9 @@ class CategoryMoviesPage extends StatefulWidget {
 class _CategoryMoviesPageState extends State<CategoryMoviesPage> {
   List<Map<String, dynamic>> movies = [];
   bool isLoading = true;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
@@ -170,20 +176,31 @@ class _CategoryMoviesPageState extends State<CategoryMoviesPage> {
     _fetchMovies();
   }
 
-  Future<void> _fetchMovies() async {
+  Future<void> _fetchMovies({bool loadMore = false}) async {
     final String apiKey = dotenv.env['TMDB_API_KEY']!;
+    final int nextPage = loadMore ? _currentPage + 1 : 1;
     final String url =
-        "https://api.themoviedb.org/3/discover/movie?api_key=$apiKey&with_genres=${widget.category['id']}&language=es-ES";
+        "https://api.themoviedb.org/3/discover/movie?api_key=$apiKey&with_genres=${widget.category['id']}&language=es-ES&page=$nextPage";
+    if (loadMore) setState(() => _isLoadingMore = true);
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
-        movies = List<Map<String, dynamic>>.from(data['results']);
+        if (loadMore) {
+          movies.addAll(List<Map<String, dynamic>>.from(data['results']));
+          _currentPage = nextPage;
+        } else {
+          movies = List<Map<String, dynamic>>.from(data['results']);
+          _currentPage = 1;
+        }
+        _totalPages = data['total_pages'] ?? 1;
         isLoading = false;
+        _isLoadingMore = false;
       });
     } else {
       setState(() {
         isLoading = false;
+        _isLoadingMore = false;
       });
     }
   }
@@ -213,99 +230,124 @@ class _CategoryMoviesPageState extends State<CategoryMoviesPage> {
               ? Center(child: Text("No hay películas disponibles", style: TextStyle(color: Colors.white)))
               : LayoutBuilder(
                   builder: (context, constraints) {
-                    // Calcula el ancho ideal para 5 tarjetas con separación (igual que en home_page.dart)
                     final cardSpacing = 16.0;
                     final cardsVisible = 5;
                     final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
-                    final cardHeight = cardWidth * 1.6; // Un poco más largas
+                    final cardHeight = cardWidth * 1.6;
                     return Center(
                       child: Container(
                         constraints: BoxConstraints(
                           maxWidth: constraints.maxWidth * 0.70,
                         ),
-                        child: GridView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 16),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5,
-                            crossAxisSpacing: cardSpacing,
-                            mainAxisSpacing: 20,
-                            childAspectRatio: cardWidth / cardHeight,
-                          ),
-                          itemCount: movies.length,
-                          itemBuilder: (context, index) {
-                            final movieMap = movies[index];
-                            final movie = Movie.fromJson(movieMap);
-                            final imageUrl = movie.posterPath != null
-                                ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
-                                : "https://image.tmdb.org/t/p/w500";
-                            return OpenContainer(
-                              closedElevation: 6,
-                              openElevation: 10,
-                              closedShape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              openShape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              transitionDuration: Duration(milliseconds: 500),
-                              closedBuilder: (context, action) => GestureDetector(
-                                onTap: action,
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: GridView.builder(
+                                padding: EdgeInsets.symmetric(horizontal: 0, vertical: 16),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 5,
+                                  crossAxisSpacing: cardSpacing,
+                                  mainAxisSpacing: 20,
+                                  childAspectRatio: cardWidth / cardHeight,
+                                ),
+                                itemCount: movies.length,
+                                itemBuilder: (context, index) {
+                                  final movieMap = movies[index];
+                                  final movie = Movie.fromJson(movieMap);
+                                  final imageUrl = movie.posterPath != null
+                                      ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
+                                      : "https://image.tmdb.org/t/p/w500";
+                                  return OpenContainer(
+                                    closedElevation: 6,
+                                    openElevation: 10,
+                                    closedShape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        imageUrl,
-                                        width: cardWidth,
-                                        height: cardHeight,
-                                        fit: BoxFit.cover,
-                                        alignment: Alignment.topCenter,
-                                        errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
-                                      ),
                                     ),
-                                    Positioned(
-                                      top: 8,
-                                      left: 8,
-                                      child: CircularPercentIndicator(
-                                        radius: 22,
-                                        lineWidth: 4,
-                                        percent: (movie.voteAverage) / 10.0,
-                                        animation: true,
-                                        animationDuration: 600,
-                                        backgroundColor: Colors.black,
-                                        progressColor: movie.voteAverage >= 7.0
-                                            ? Colors.greenAccent.shade400
-                                            : movie.voteAverage >= 5.0
-                                                ? Colors.orangeAccent.shade200
-                                                : Colors.redAccent.shade200,
-                                        circularStrokeCap: CircularStrokeCap.round,
-                                        center: Text(
-                                          '${(movie.voteAverage * 10).toInt()}%',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            shadows: [
-                                              Shadow(
-                                                blurRadius: 4,
-                                                color: Colors.black,
-                                                offset: Offset(1, 1),
-                                              ),
-                                            ],
+                                    openShape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    transitionDuration: Duration(milliseconds: 500),
+                                    closedBuilder: (context, action) => GestureDetector(
+                                      onTap: action,
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Image.network(
+                                              imageUrl,
+                                              width: cardWidth,
+                                              height: cardHeight,
+                                              fit: BoxFit.cover,
+                                              alignment: Alignment.topCenter,
+                                              errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                            ),
                                           ),
-                                        ),
+                                          Positioned(
+                                            top: 8,
+                                            left: 8,
+                                            child: CircularPercentIndicator(
+                                              radius: 22,
+                                              lineWidth: 4,
+                                              percent: (movie.voteAverage) / 10.0,
+                                              animation: true,
+                                              animationDuration: 600,
+                                              backgroundColor: Colors.black,
+                                              progressColor: movie.voteAverage >= 7.0
+                                                  ? Colors.greenAccent.shade400
+                                                  : movie.voteAverage >= 5.0
+                                                      ? Colors.orangeAccent.shade200
+                                                      : Colors.redAccent.shade200,
+                                              circularStrokeCap: CircularStrokeCap.round,
+                                              center: Text(
+                                                '${(movie.voteAverage * 10).toInt()}%',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
+                                                  shadows: [
+                                                    Shadow(
+                                                      blurRadius: 4,
+                                                      color: Colors.black,
+                                                      offset: Offset(1, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                    openBuilder: (context, action) => MovieDetailsExpanded(
+                                      movie: movie,
+                                      imageUrl: imageUrl,
+                                      onClose: () => Navigator.of(context).pop(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            if (_currentPage < _totalPages)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
+                                child: SizedBox(
+                                  width: 220,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black,
+                                      textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    onPressed: _isLoadingMore ? null : () => _fetchMovies(loadMore: true),
+                                    child: _isLoadingMore
+                                        ? SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2))
+                                        : Text('Mostrar más'),
+                                  ),
                                 ),
                               ),
-                              openBuilder: (context, action) => MovieDetailsExpanded(
-                                movie: movie,
-                                imageUrl: imageUrl,
-                                onClose: () => Navigator.of(context).pop(),
-                              ),
-                            );
-                          },
+                          ],
                         ),
                       ),
                     );
