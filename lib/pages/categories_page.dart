@@ -47,153 +47,20 @@ class _CategoriesPageState extends State<CategoriesPage> {
       _isCategoryTapped = true;
     });
     await Future.delayed(Duration(milliseconds: 180));
-    List<Map<String, dynamic>> movies = [];
-    final String apiKey = dotenv.env['TMDB_API_KEY']!;
-    final String url =
-        "https://api.themoviedb.org/3/discover/movie?api_key=$apiKey&with_genres=${_selectedCategory!['id']}&language=es-ES";
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      movies = List<Map<String, dynamic>>.from(data['results']);
-    } else {
-      print("Error al obtener películas");
-    }
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        transitionDuration: Duration(milliseconds: 500),
+        pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
+          opacity: animation,
+          child: CategoryMoviesPage(
+            category: categories[index],
+          ),
+        ),
+      ),
+    );
     setState(() {
       _isCategoryTapped = false;
     });
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.98,
-          minChildSize: 0.7,
-          maxChildSize: 1.0,
-          expand: false,
-          builder: (context, scrollController) {
-            return Center(
-              child: Container(
-                constraints: BoxConstraints(
-                  maxWidth: 1400, // Limita el ancho máximo para pantallas grandes
-                  minWidth: 400,  // Ancho mínimo para pantallas pequeñas
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.97),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                ),
-                padding: EdgeInsets.only(left: 8, right: 8, top: 16, bottom: 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(_selectedCategory!['icon'], color: Colors.white, size: 32),
-                        SizedBox(width: 12),
-                        Text(_selectedCategory!['name'], style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                        Spacer(),
-                        IconButton(
-                          icon: Icon(Icons.close, color: Colors.white),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    Expanded(
-                      child: movies.isEmpty
-                          ? Center(child: Text("No hay películas disponibles", style: TextStyle(color: Colors.white)))
-                          : GridView.builder(
-                              controller: scrollController,
-                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 5,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 20,
-                                childAspectRatio: 0.7,
-                              ),
-                              itemCount: movies.length,
-                              itemBuilder: (context, index) {
-                                final movieMap = movies[index];
-                                final movie = Movie.fromJson(movieMap);
-                                final imageUrl = movie.posterPath != null
-                                    ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
-                                    : "https://image.tmdb.org/t/p/w500";
-                                return OpenContainer(
-                                  closedElevation: 6,
-                                  openElevation: 10,
-                                  closedShape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  openShape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
-                                  transitionDuration: Duration(milliseconds: 500),
-                                  closedBuilder: (context, action) => GestureDetector(
-                                    onTap: action,
-                                    child: Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.cover,
-                                            alignment: Alignment.topCenter,
-                                            errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 8,
-                                          left: 8,
-                                          child: CircularPercentIndicator(
-                                            radius: 22,
-                                            lineWidth: 4,
-                                            percent: (movie.voteAverage) / 10.0,
-                                            animation: true,
-                                            animationDuration: 600,
-                                            backgroundColor: Colors.black,
-                                            progressColor: movie.voteAverage >= 7.0
-                                                ? Colors.greenAccent.shade400
-                                                : movie.voteAverage >= 5.0
-                                                    ? Colors.orangeAccent.shade200
-                                                    : Colors.redAccent.shade200,
-                                            circularStrokeCap: CircularStrokeCap.round,
-                                            center: Text(
-                                              '${(movie.voteAverage * 10).toInt()}%',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13,
-                                                shadows: [
-                                                  Shadow(
-                                                    blurRadius: 4,
-                                                    color: Colors.black,
-                                                    offset: Offset(1, 1),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  openBuilder: (context, action) => MovieDetailsExpanded(
-                                    movie: movie,
-                                    imageUrl: imageUrl,
-                                    onClose: () => Navigator.of(context).pop(),
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -212,47 +79,238 @@ class _CategoriesPageState extends State<CategoriesPage> {
           Container(
             color: Colors.black.withOpacity(0.7),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 3,
-              ),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final isSelected = _selectedIndex == index && _isCategoryTapped;
-                return AnimatedScale(
-                  scale: isSelected ? 1.12 : 1.0,
-                  duration: Duration(milliseconds: 180),
-                  curve: Curves.easeInOut,
-                  child: Card(
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    color: isSelected ? Colors.white : Colors.white,
-                    child: InkWell(
-                      onTap: () => _onCategoryTap(index),
-                      borderRadius: BorderRadius.circular(15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(categories[index]['icon'], color: Colors.black),
-                          SizedBox(width: 10),
-                          Text(categories[index]['name'], style: TextStyle(color: Colors.black, fontSize: 16)),
-                        ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                children: [
+                  Expanded(
+                    child: GridView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 18,
+                        mainAxisSpacing: 18,
+                        childAspectRatio: 2.5,
                       ),
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                        final isSelected = _selectedIndex == index && _isCategoryTapped;
+                        return AnimatedScale(
+                          scale: isSelected ? 1.12 : 1.0,
+                          duration: Duration(milliseconds: 180),
+                          curve: Curves.easeInOut,
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                            color: isSelected ? Colors.white : Colors.white,
+                            child: InkWell(
+                              onTap: () async {
+                                setState(() {
+                                  _selectedCategory = categories[index];
+                                  _selectedIndex = index;
+                                  _isCategoryTapped = true;
+                                });
+                                await Future.delayed(Duration(milliseconds: 180));
+                                Navigator.of(context).push(
+                                  PageRouteBuilder(
+                                    transitionDuration: Duration(milliseconds: 500),
+                                    pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
+                                      opacity: animation,
+                                      child: CategoryMoviesPage(
+                                        category: categories[index],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                                setState(() {
+                                  _isCategoryTapped = false;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(15),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(categories[index]['icon'], color: Colors.black, size: 22),
+                                  SizedBox(width: 8),
+                                  Text(categories[index]['name'], style: TextStyle(color: Colors.black, fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
-            ),
+                ],
+              );
+            },
           ),
         ],
       ),
+    );
+  }
+}
+
+// Nueva página para mostrar películas de la categoría seleccionada
+class CategoryMoviesPage extends StatefulWidget {
+  final Map<String, dynamic> category;
+  const CategoryMoviesPage({required this.category});
+
+  @override
+  State<CategoryMoviesPage> createState() => _CategoryMoviesPageState();
+}
+
+class _CategoryMoviesPageState extends State<CategoryMoviesPage> {
+  List<Map<String, dynamic>> movies = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMovies();
+  }
+
+  Future<void> _fetchMovies() async {
+    final String apiKey = dotenv.env['TMDB_API_KEY']!;
+    final String url =
+        "https://api.themoviedb.org/3/discover/movie?api_key=$apiKey&with_genres=${widget.category['id']}&language=es-ES";
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        movies = List<Map<String, dynamic>>.from(data['results']);
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black.withOpacity(0.97),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Icon(widget.category['icon'], color: Colors.white, size: 28),
+            SizedBox(width: 10),
+            Text(widget.category['name'], style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : movies.isEmpty
+              ? Center(child: Text("No hay películas disponibles", style: TextStyle(color: Colors.white)))
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Calcula el ancho ideal para 5 tarjetas con separación (igual que en home_page.dart)
+                    final cardSpacing = 16.0;
+                    final cardsVisible = 5;
+                    final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
+                    final cardHeight = cardWidth * 1.6; // Un poco más largas
+                    return Center(
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth * 0.70,
+                        ),
+                        child: GridView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 16),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 5,
+                            crossAxisSpacing: cardSpacing,
+                            mainAxisSpacing: 20,
+                            childAspectRatio: cardWidth / cardHeight,
+                          ),
+                          itemCount: movies.length,
+                          itemBuilder: (context, index) {
+                            final movieMap = movies[index];
+                            final movie = Movie.fromJson(movieMap);
+                            final imageUrl = movie.posterPath != null
+                                ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
+                                : "https://image.tmdb.org/t/p/w500";
+                            return OpenContainer(
+                              closedElevation: 6,
+                              openElevation: 10,
+                              closedShape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              openShape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              transitionDuration: Duration(milliseconds: 500),
+                              closedBuilder: (context, action) => GestureDetector(
+                                onTap: action,
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        imageUrl,
+                                        width: cardWidth,
+                                        height: cardHeight,
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topCenter,
+                                        errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 8,
+                                      left: 8,
+                                      child: CircularPercentIndicator(
+                                        radius: 22,
+                                        lineWidth: 4,
+                                        percent: (movie.voteAverage) / 10.0,
+                                        animation: true,
+                                        animationDuration: 600,
+                                        backgroundColor: Colors.black,
+                                        progressColor: movie.voteAverage >= 7.0
+                                            ? Colors.greenAccent.shade400
+                                            : movie.voteAverage >= 5.0
+                                                ? Colors.orangeAccent.shade200
+                                                : Colors.redAccent.shade200,
+                                        circularStrokeCap: CircularStrokeCap.round,
+                                        center: Text(
+                                          '${(movie.voteAverage * 10).toInt()}%',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 4,
+                                                color: Colors.black,
+                                                offset: Offset(1, 1),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              openBuilder: (context, action) => MovieDetailsExpanded(
+                                movie: movie,
+                                imageUrl: imageUrl,
+                                onClose: () => Navigator.of(context).pop(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }
