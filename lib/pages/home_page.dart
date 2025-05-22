@@ -6,6 +6,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:animations/animations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui';
 import '../models/movie.dart';
 
 class HomePage extends StatefulWidget {
@@ -55,7 +56,6 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
         title: Text(
           "Películas Populares",
           style: GoogleFonts.poppins(
@@ -73,6 +73,7 @@ class _HomePageState extends State<HomePage> {
           ),
           textAlign: TextAlign.center,
         ),
+        centerTitle: true,
         automaticallyImplyLeading: false,
       ),
       body: Stack(
@@ -86,119 +87,184 @@ class _HomePageState extends State<HomePage> {
           Container(
             color: Colors.black.withOpacity(0.6),
           ),
-          Center(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Calcula el ancho ideal para 5 tarjetas con separación (más pequeñas)
-                final cardSpacing = 16.0;
-                final cardsVisible = 5;
-                final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
-                final cardHeight = cardWidth * 1.2; // Proporción más ancha y menos alta
-                return _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : CarouselSlider.builder(
-                        itemCount: _movies.length,
-                        itemBuilder: (context, index, realIdx) {
-                          final movieMap = _movies[index];
-                          final movie = Movie.fromJson(movieMap);
-                          final imageUrl = movie.posterPath != null
-                              ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
-                              : "https://image.tmdb.org/t/p/w500";
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: OpenContainer(
-                              closedElevation: 6,
-                              openElevation: 10,
-                              closedShape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              openShape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              transitionDuration: Duration(milliseconds: 500),
-                              closedBuilder: (context, action) => GestureDetector(
-                                onTap: action,
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        imageUrl,
-                                        fit: BoxFit.cover,
-                                        alignment: Alignment.topCenter,
-                                        loadingBuilder: (context, child, progress) {
-                                          if (progress == null) return child;
-                                          return Center(child: CircularProgressIndicator());
-                                        },
-                                        errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+          // Rectángulo de bienvenida
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 150.0),
+              child: FractionallySizedBox(
+                widthFactor: 1.0, // Ocupa todo el ancho de la pantalla
+                child: Container(
+                  height: 240,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF232526), // Negro metálico elegante
+                    borderRadius: BorderRadius.zero,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.10),
+                        blurRadius: 24,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFF232526), // Gris oscuro metálico
+                        Color(0xFF414345), // Gris metálico más claro
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Te damos la bienvenida.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 44,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Millones de películas, series y gente por descubrir. Explora ya.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 1.1,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Carousel y contenido principal
+          Padding(
+            padding: const EdgeInsets.only(top: 250.0),
+            child: Center(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Calcula el ancho ideal para 5 tarjetas con separación (más pequeñas)
+                  final cardSpacing = 16.0;
+                  final cardsVisible = 5;
+                  final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
+                  final cardHeight = cardWidth * 1.2; // Proporción más ancha y menos alta
+                  return _isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : CarouselSlider.builder(
+                          itemCount: _movies.length,
+                          itemBuilder: (context, index, realIdx) {
+                            final movieMap = _movies[index];
+                            final movie = Movie.fromJson(movieMap);
+                            final imageUrl = movie.posterPath != null
+                                ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
+                                : "https://image.tmdb.org/t/p/w500";
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: OpenContainer(
+                                closedElevation: 6,
+                                openElevation: 10,
+                                closedShape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                openShape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                transitionDuration: Duration(milliseconds: 500),
+                                closedBuilder: (context, action) => GestureDetector(
+                                  onTap: action,
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          imageUrl,
+                                          fit: BoxFit.cover,
+                                          alignment: Alignment.topCenter,
+                                          loadingBuilder: (context, child, progress) {
+                                            if (progress == null) return child;
+                                            return Center(child: CircularProgressIndicator());
+                                          },
+                                          errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                        ),
                                       ),
-                                    ),
-                                    // Puntuación de usuarios en la esquina superior izquierda
-                                    Positioned(
-                                      top: 8,
-                                      left: 8,
-                                      child: CircularPercentIndicator(
-                                        radius: 22,
-                                        lineWidth: 4,
-                                        percent: (movie.voteAverage) / 10.0,
-                                        animation: true,
-                                        animationDuration: 600,
-                                        backgroundColor: Colors.black,
-                                        progressColor: _getScoreColor(movie.voteAverage),
-                                        circularStrokeCap: CircularStrokeCap.round,
-                                        center: Text(
-                                          '${(movie.voteAverage * 10).toInt()}%',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            shadows: [
-                                              Shadow(
-                                                blurRadius: 4,
-                                                color: Colors.black,
-                                                offset: Offset(1, 1),
-                                              ),
-                                            ],
+                                      // Puntuación de usuarios en la esquina superior izquierda
+                                      Positioned(
+                                        top: 8,
+                                        left: 8,
+                                        child: CircularPercentIndicator(
+                                          radius: 22,
+                                          lineWidth: 4,
+                                          percent: (movie.voteAverage) / 10.0,
+                                          animation: true,
+                                          animationDuration: 600,
+                                          backgroundColor: Colors.black,
+                                          progressColor: _getScoreColor(movie.voteAverage),
+                                          circularStrokeCap: CircularStrokeCap.round,
+                                          center: Text(
+                                            '${(movie.voteAverage * 10).toInt()}%',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 4,
+                                                  color: Colors.black,
+                                                  offset: Offset(1, 1),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                ),
+                                openBuilder: (context, action) => FutureBuilder<Map<String, dynamic>>(
+                                  future: _tmdbService.getMovieDetails(movie.id),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return Center(child: CircularProgressIndicator());
+                                    }
+                                    final detailedMovie = Movie.fromJson(snapshot.data!);
+                                    final detailedImageUrl = detailedMovie.posterPath != null
+                                        ? "https://image.tmdb.org/t/p/w500${detailedMovie.posterPath}"
+                                        : "https://image.tmdb.org/t/p/w500";
+                                    return MovieDetailsExpanded(
+                                      movie: detailedMovie,
+                                      imageUrl: detailedImageUrl,
+                                      onClose: () => Navigator.of(context).pop(),
+                                    );
+                                  },
                                 ),
                               ),
-                              openBuilder: (context, action) => FutureBuilder<Map<String, dynamic>>(
-                                future: _tmdbService.getMovieDetails(movie.id),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData) {
-                                    return Center(child: CircularProgressIndicator());
-                                  }
-                                  final detailedMovie = Movie.fromJson(snapshot.data!);
-                                  final detailedImageUrl = detailedMovie.posterPath != null
-                                      ? "https://image.tmdb.org/t/p/w500${detailedMovie.posterPath}"
-                                      : "https://image.tmdb.org/t/p/w500";
-                                  return MovieDetailsExpanded(
-                                    movie: detailedMovie,
-                                    imageUrl: detailedImageUrl,
-                                    onClose: () => Navigator.of(context).pop(),
-                                  );
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                        options: CarouselOptions(
-                          height: cardHeight + 48,
-                          enlargeCenterPage: false,
-                          viewportFraction: cardWidth / constraints.maxWidth,
-                          enableInfiniteScroll: true,
-                          initialPage: 2,
-                          pageSnapping: true,
-                          padEnds: false,
-                          disableCenter: true,
-                          scrollPhysics: BouncingScrollPhysics(),
-                        ),
-                      );
-              },
+                            );
+                          },
+                          options: CarouselOptions(
+                            height: cardHeight + 48,
+                            enlargeCenterPage: false,
+                            viewportFraction: cardWidth / constraints.maxWidth,
+                            enableInfiniteScroll: true,
+                            initialPage: 2,
+                            pageSnapping: true,
+                            padEnds: false,
+                            disableCenter: true,
+                            scrollPhysics: BouncingScrollPhysics(),
+                          ),
+                        );
+                },
+              ),
             ),
           ),
         ],
