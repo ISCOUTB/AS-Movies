@@ -65,27 +65,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(
-          "Categorías",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            shadows: [
-              Shadow(
-                blurRadius: 8.0,
-                color: Colors.black.withOpacity(0.7),
-                offset: Offset(2, 2),
-              ),
-            ],
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
+      // No AppBar aquí, la barra de navegación viene de MainScreen
       body: Stack(
         children: [
           Positioned.fill(
@@ -101,47 +81,57 @@ class _CategoriesPageState extends State<CategoriesPage> {
             builder: (context, constraints) {
               return Column(
                 children: [
-                  SizedBox(height: 32),
+                  SizedBox(height: 140), // Espacio para la barra de navegación superior
                   Expanded(
-                    child: GridView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 5,
-                        crossAxisSpacing: 18,
-                        mainAxisSpacing: 18,
-                        childAspectRatio: 2.5,
-                      ),
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        final isSelected = _selectedIndex == index && _isCategoryTapped;
-                        return AnimatedScale(
-                          scale: isSelected ? 1.12 : 1.0,
-                          duration: Duration(milliseconds: 180),
-                          curve: Curves.easeInOut,
-                          child: Card(
-                            elevation: 5,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            color: Colors.white,
-                            child: InkWell(
-                              onTap: () => _onCategoryTap(index),
-                              borderRadius: BorderRadius.circular(15),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(categories[index]['icon'], color: Colors.black, size: 22),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    categories[index]['name'],
-                                    style: TextStyle(color: Colors.black, fontSize: 14),
+                    child: Center(
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 0),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          crossAxisSpacing: 18,
+                          mainAxisSpacing: 18,
+                          childAspectRatio: 2.8,
+                        ),
+                        itemCount: categories.length,
+                        itemBuilder: (context, index) {
+                          final isSelected = _selectedIndex == index && _isCategoryTapped;
+                          return AnimatedScale(
+                            scale: isSelected ? 1.12 : 1.0,
+                            duration: Duration(milliseconds: 180),
+                            curve: Curves.easeInOut,
+                            child: Card(
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              color: Colors.white,
+                              child: InkWell(
+                                onTap: () => _onCategoryTap(index),
+                                borderRadius: BorderRadius.circular(15),
+                                child: SizedBox(
+                                  height: 56,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(categories[index]['icon'], color: Colors.black, size: 26),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        categories[index]['name'],
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
