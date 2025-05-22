@@ -305,34 +305,55 @@ class _CategoryMoviesPageState extends State<CategoryMoviesPage> {
                                           Positioned(
                                             top: 8,
                                             left: 8,
-                                            child: CircularPercentIndicator(
-                                              radius: 22,
-                                              lineWidth: 4,
-                                              percent: (movie.voteAverage) / 10.0,
-                                              animation: true,
-                                              animationDuration: 600,
-                                              backgroundColor: Colors.black,
-                                              progressColor: movie.voteAverage >= 7.0
-                                                  ? Colors.greenAccent.shade400
-                                                  : movie.voteAverage >= 5.0
-                                                      ? Colors.orangeAccent.shade200
-                                                      : Colors.redAccent.shade200,
-                                              circularStrokeCap: CircularStrokeCap.round,
-                                              center: Text(
-                                                '${(movie.voteAverage * 10).toInt()}%',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 13,
-                                                  shadows: [
-                                                    Shadow(
-                                                      blurRadius: 4,
-                                                      color: Colors.black,
-                                                      offset: Offset(1, 1),
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                SizedBox(
+                                                  width: 36,
+                                                  height: 36,
+                                                  child: CustomPaint(
+                                                    painter: _ScoreCirclePainter(
+                                                      percent: movie.voteAverage / 10.0,
+                                                      color: movie.voteAverage >= 7.0
+                                                          ? Colors.greenAccent.shade400
+                                                          : movie.voteAverage >= 5.0
+                                                              ? Colors.orangeAccent.shade200
+                                                              : Colors.redAccent.shade200,
                                                     ),
-                                                  ],
+                                                  ),
                                                 ),
-                                              ),
+                                                Container(
+                                                  width: 32,
+                                                  height: 32,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black,
+                                                    shape: BoxShape.circle,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black.withOpacity(0.4),
+                                                        blurRadius: 4,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '${(movie.voteAverage * 10).toInt()}%',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 11,
+                                                        shadows: [
+                                                          Shadow(
+                                                            blurRadius: 2,
+                                                            color: Colors.black,
+                                                            offset: Offset(1, 1),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
@@ -375,4 +396,38 @@ class _CategoryMoviesPageState extends State<CategoryMoviesPage> {
                 ),
     );
   }
+}
+
+// Custom painter para la barra de progreso
+class _ScoreCirclePainter extends CustomPainter {
+  final double percent;
+  final Color color;
+  _ScoreCirclePainter({required this.percent, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint bgPaint = Paint()
+      ..color = Colors.grey[800]!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+    final Paint fgPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) - 2;
+    canvas.drawCircle(center, radius, bgPaint);
+    final sweepAngle = 2 * 3.141592653589793 * percent;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -3.141592653589793 / 2,
+      sweepAngle,
+      false,
+      fgPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

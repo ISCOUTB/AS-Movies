@@ -140,7 +140,11 @@ class LoginScreenState extends State<LoginScreen> {
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size(double.infinity, 50),
-                              backgroundColor: Colors.blue,
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
                             ),
                             onPressed: _isLoginButtonEnabled
                                 ? () {
@@ -154,7 +158,11 @@ class LoginScreenState extends State<LoginScreen> {
                                 : null,
                             child: const Text(
                               'Iniciar Sesión',
-                              style: TextStyle(fontSize: 18),
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
