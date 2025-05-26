@@ -40,4 +40,16 @@ class TMDBService {
       throw Exception("Error al buscar películas");
     }
   }
+
+  Future<List<Map<String, dynamic>>> discoverMovies({int page = 1}) async {
+    final url = Uri.parse("$_baseUrl/discover/movie?api_key=$_apiKey&language=es-ES&page=$page");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data['results']);
+    } else {
+      throw Exception("Error al descubrir películas");
+    }
+  }
 }
