@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:convert';
-import '../models/movie.dart';
 import 'package:animations/animations.dart';
-
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import '../models/movie.dart';
+import '../sevices/tmdb_service.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -130,80 +126,127 @@ class _SearchPageState extends State<SearchPage> {
                       ? Center(child: CircularProgressIndicator())
                       : _searchResults.isEmpty
                           ? Center(child: Text("No hay resultados"))
-                          : LayoutBuilder(
-                              builder: (context, constraints) {
-                                final cardSpacing = 16.0;
-                                final cardsVisible = 5;
-                                final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
-                                final cardHeight = cardWidth * 1.2;
-                                return Center(
-                                  child: AnimatedOpacity(
-                                    opacity: _searchResults.isNotEmpty ? 1.0 : 0.0,
-                                    duration: Duration(milliseconds: 500),
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                        maxWidth: constraints.maxWidth * 0.70,
-                                      ),
-                                      child: CarouselSlider.builder(
-                                        itemCount: _searchResults.length,
-                                        itemBuilder: (context, index, realIdx) {
-                                          final movieMap = _searchResults[index];
-                                          final movie = Movie.fromJson(movieMap);
-                                          final imageUrl = movie.posterPath != null
-                                              ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
-                                              : "https://image.tmdb.org/t/p/w500";
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                                            child: OpenContainer(
-                                              closedElevation: 6,
-                                              openElevation: 10,
-                                              closedShape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              openShape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(24),
-                                              ),
-                                              transitionDuration: Duration(milliseconds: 500),
-                                              closedBuilder: (context, action) => GestureDetector(
-                                                onTap: action,
-                                                child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  child: Image.network(
-                                                    imageUrl,
-                                                    width: cardWidth,
-                                                    height: cardHeight,
-                                                    fit: BoxFit.cover,
-                                                    alignment: Alignment.topCenter,
-                                                    errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                          : Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              child: GridView.builder(
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 5,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 20,
+                                  childAspectRatio: 0.68,
+                                ),
+                                itemCount: _searchResults.length,
+                                itemBuilder: (context, index) {
+                                  final movieMap = _searchResults[index];
+                                  final movie = Movie.fromJson(movieMap);
+                                  final imageUrl = movie.posterPath != null
+                                      ? "https://image.tmdb.org/t/p/w500${movie.posterPath}"
+                                      : "https://image.tmdb.org/t/p/w500";
+                                  return OpenContainer(
+                                    closedElevation: 6,
+                                    openElevation: 10,
+                                    closedShape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    openShape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    transitionDuration: Duration(milliseconds: 500),
+                                    closedBuilder: (context, action) => GestureDetector(
+                                      onTap: action,
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Image.network(
+                                              imageUrl,
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              fit: BoxFit.cover,
+                                              alignment: Alignment.topCenter,
+                                              errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                            ),
+                                          ),
+                                          // Puntuación circular como en categories_page.dart
+                                          Positioned(
+                                            top: 8,
+                                            left: 8,
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                SizedBox(
+                                                  width: 36,
+                                                  height: 36,
+                                                  child: CustomPaint(
+                                                    painter: _ScoreCirclePainter(
+                                                      percent: movie.voteAverage / 10.0,
+                                                      color: movie.voteAverage >= 7.0
+                                                          ? Colors.greenAccent.shade400
+                                                          : movie.voteAverage >= 5.0
+                                                              ? Colors.orangeAccent.shade200
+                                                              : Colors.redAccent.shade200,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              openBuilder: (context, action) => MovieDetailsExpanded(
-                                                movie: movie,
-                                                imageUrl: imageUrl,
-                                                onClose: () => Navigator.of(context).pop(),
-                                              ),
+                                                Container(
+                                                  width: 32,
+                                                  height: 32,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black,
+                                                    shape: BoxShape.circle,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black.withOpacity(0.4),
+                                                        blurRadius: 4,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '${(movie.voteAverage * 10).toInt()}%',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 11,
+                                                        shadows: [
+                                                          Shadow(
+                                                            blurRadius: 2,
+                                                            color: Colors.black,
+                                                            offset: Offset(1, 1),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          );
-                                        },
-                                        options: CarouselOptions(
-                                          height: cardHeight + 48,
-                                          enlargeCenterPage: false,
-                                          viewportFraction: cardWidth / (constraints.maxWidth * 0.70),
-                                          enableInfiniteScroll: false,
-                                          initialPage: 2,
-                                          pageSnapping: true,
-                                          padEnds: false,
-                                          disableCenter: true,
-                                          scrollPhysics: BouncingScrollPhysics(),
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
+                                    openBuilder: (context, action) => FutureBuilder<Map<String, dynamic>>(
+                                      future: _tmdbService.getMovieDetails(movie.id),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) {
+                                          return Center(child: CircularProgressIndicator());
+                                        }
+                                        final detailedMovie = Movie.fromJson(snapshot.data!);
+                                        final detailedImageUrl = detailedMovie.posterPath != null
+                                            ? "https://image.tmdb.org/t/p/w500${detailedMovie.posterPath}"
+                                            : "https://image.tmdb.org/t/p/w500";
+                                        return MovieDetailsExpanded(
+                                          movie: detailedMovie,
+                                          imageUrl: detailedImageUrl,
+                                          onClose: () => Navigator.of(context).pop(),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                ),
+                )
               ],
             ),
           ),
@@ -213,19 +256,31 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
-class TMDBService {
-  final String _baseUrl = "https://api.themoviedb.org/3";
-  final String _apiKey = dotenv.env['TMDB_API_KEY']!;
+// Painter para el círculo de puntuación
+class _ScoreCirclePainter extends CustomPainter {
+  final double percent;
+  final Color color;
+  _ScoreCirclePainter({required this.percent, required this.color});
 
-  Future<List<Map<String, dynamic>>> searchMovies(String query) async {
-    final url = Uri.parse("$_baseUrl/search/movie?api_key=$_apiKey&query=$query&language=es-ES");
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return List<Map<String, dynamic>>.from(data['results']);
-    } else {
-      throw Exception("Error al buscar películas");
-    }
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint base = Paint()
+      ..color = Colors.white.withOpacity(0.18)
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke;
+    final Paint arc = Paint()
+      ..color = color
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 2;
+    canvas.drawCircle(center, radius, base);
+    final sweep = 2 * 3.141592653589793 * percent;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
+        -3.141592653589793 / 2, sweep, false, arc);
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/movie.dart';
 import 'package:animations/animations.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../sevices/tmdb_service.dart';
 
 class CategoriesPage extends StatefulWidget {
   @override
@@ -35,13 +35,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
     {'id': 37, 'name': 'Western', 'icon': Icons.west},
   ];
 
-  Map<String, dynamic>? _selectedCategory;
   int? _selectedIndex;
   bool _isCategoryTapped = false;
 
   void _onCategoryTap(int index) async {
     setState(() {
-      _selectedCategory = categories[index];
       _selectedIndex = index;
       _isCategoryTapped = true;
     });
@@ -359,10 +357,22 @@ class _CategoryMoviesPageState extends State<CategoryMoviesPage> {
                                         ],
                                       ),
                                     ),
-                                    openBuilder: (context, action) => MovieDetailsExpanded(
-                                      movie: movie,
-                                      imageUrl: imageUrl,
-                                      onClose: () => Navigator.of(context).pop(),
+                                    openBuilder: (context, action) => FutureBuilder<Map<String, dynamic>>(
+                                      future: TMDBService().getMovieDetails(movie.id),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) {
+                                          return Center(child: CircularProgressIndicator());
+                                        }
+                                        final detailedMovie = Movie.fromJson(snapshot.data!);
+                                        final detailedImageUrl = detailedMovie.posterPath != null
+                                            ? "https://image.tmdb.org/t/p/w500${detailedMovie.posterPath}"
+                                            : "https://image.tmdb.org/t/p/w500";
+                                        return MovieDetailsExpanded(
+                                          movie: detailedMovie,
+                                          imageUrl: detailedImageUrl,
+                                          onClose: () => Navigator.of(context).pop(),
+                                        );
+                                      },
                                     ),
                                   );
                                 },

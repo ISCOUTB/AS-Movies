@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:animations/animations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import '../models/movie.dart';
+import '../sevices/tmdb_service.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -36,16 +33,6 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _isLoading = false;
       });
-    }
-  }
-
-  Color _getScoreColor(num score) {
-    if (score >= 7.0) {
-      return Colors.greenAccent.shade400;
-    } else if (score >= 5.0) {
-      return Colors.orangeAccent.shade200;
-    } else {
-      return Colors.redAccent.shade200;
     }
   }
 
@@ -295,32 +282,6 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-  }
-}
-
-class TMDBService {
-  final String _baseUrl = "https://api.themoviedb.org/3";
-  final String _apiKey = dotenv.env['TMDB_API_KEY']!;
-
-  Future<List<Map<String, dynamic>>> getPopularMovies() async {
-    final url = Uri.parse("$_baseUrl/movie/popular?api_key=$_apiKey&language=es-ES");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return List<Map<String, dynamic>>.from(data['results']);
-    } else {
-      throw Exception("Failed to load popular movies");
-    }
-  }
-
-  Future<Map<String, dynamic>> getMovieDetails(int movieId) async {
-    final url = Uri.parse("$_baseUrl/movie/$movieId?api_key=$_apiKey&language=es-ES&append_to_response=credits");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception("Failed to load movie details");
-    }
   }
 }
 
