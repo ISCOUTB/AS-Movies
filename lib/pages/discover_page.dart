@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:card_swiper/card_swiper.dart';
 import '../models/movie.dart';
 import '../sevices/tmdb_service.dart';
 
@@ -10,7 +9,6 @@ class DiscoverPage extends StatefulWidget {
 }
 
 class _DiscoverPageState extends State<DiscoverPage> with SingleTickerProviderStateMixin {
-  final SwiperController _swiperController = SwiperController();
   List<Movie> movies = [];
   List<Movie> likedMovies = [];
   int swipedCount = 0;
