@@ -1,92 +1,127 @@
 import 'package:flutter/material.dart';
-import '../login.dart'; // Importa la pantalla de login
+import 'favoritas_page.dart';
+import 'historial_page.dart';
+import 'configuracion_page.dart';
+import 'soporte_page.dart';
+import '../login.dart';
 
 class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text("Perfil"),
-        backgroundColor: Colors.redAccent,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text("Mi Perfil"),
+        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Sección del perfil de usuario
-            Container(
-              padding: EdgeInsets.all(20),
-              color: Colors.black87,
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage('assets/profile_pic.png'), // Imagen de perfil
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Nombre de Usuario",
-                    style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "usuario@email.com",
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/fondo.jpg'),
+                fit: BoxFit.cover,
               ),
             ),
-            SizedBox(height: 20),
-
-            // Opciones del perfil
-            _buildProfileOption(Icons.favorite, "Películas Favoritas", context),
-            _buildProfileOption(Icons.history, "Historial de Visualización", context),
-            _buildProfileOption(Icons.settings, "Configuración", context),
-            _buildProfileOption(Icons.support_agent, "Soporte", context),
-            _buildProfileOption(Icons.help_outline, "Ayuda", context),
-            _buildProfileOption(Icons.logout, "Cerrar Sesión", context, isLogout: true),
-          ],
-        ),
+          ),
+          Container(
+            color: Colors.black.withOpacity(0.5),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 100),
+              children: [
+                Card(
+                  color: Colors.white.withOpacity(0.9),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: const [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundImage: AssetImage('assets/profile_pic.png'),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          "Juan Pérez",
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 5),
+                        Text("juanperez@email.com"),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildOption(Icons.favorite, "Películas Favoritas", context: context),
+                _buildOption(Icons.history, "Historial", context: context),
+                _buildOption(Icons.settings, "Configuración", context: context),
+                _buildOption(Icons.support_agent, "Soporte", context: context),
+                _buildOption(Icons.logout, "Cerrar sesión", isLogout: true, context: context),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildProfileOption(IconData icon, String title, BuildContext context, {bool isLogout = false}) {
+  static Widget _buildOption(IconData icon, String title, {bool isLogout = false, required BuildContext context}) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.white.withOpacity(0.8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         leading: Icon(icon, color: isLogout ? Colors.red : Colors.blueAccent),
-        title: Text(title, style: TextStyle(fontSize: 18)),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16),
+        title: Text(title),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: () {
           if (isLogout) {
             _showLogoutDialog(context);
           } else {
-            // Navegar a otra página (pendiente de implementación)
+            switch (title) {
+              case "Películas Favoritas":
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritasPage()));
+                break;
+              case "Historial":
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const HistorialPage()));
+                break;
+              case "Configuración":
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ConfiguracionPage()));
+                break;
+              case "Soporte":
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SoportePage()));
+                break;
+            }
           }
         },
       ),
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  static void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Cerrar Sesión"),
-        content: Text("¿Estás seguro de que deseas cerrar sesión?"),
+      builder: (_) => AlertDialog(
+        title: const Text("Cerrar Sesión"),
+        content: const Text("¿Seguro que deseas cerrar sesión?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancelar"),
+            child: const Text("Cancelar"),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Cierra el diálogo
-              Navigator.pushReplacement( // Redirige a la pantalla de login
+              Navigator.pop(context);
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
-            child: Text("Cerrar Sesión", style: TextStyle(color: Colors.red)),
+            child: const Text("Cerrar sesión", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

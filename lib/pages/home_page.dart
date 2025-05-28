@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import '../models/movie.dart';
 import '../sevices/tmdb_service.dart';
+import 'favoritas_page.dart'; // IMPORTANTE: esta es la nueva página de favoritos
 
 class HomePage extends StatefulWidget {
   @override
@@ -62,11 +63,22 @@ class _HomePageState extends State<HomePage> {
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.favorite, color: Colors.white),
+            tooltip: 'Favoritos',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FavoritasPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Fondo con la imagen de butacas (igual que login)
           Image.asset(
             'assets/images/login.png',
             fit: BoxFit.cover,
@@ -74,18 +86,17 @@ class _HomePageState extends State<HomePage> {
           Container(
             color: Colors.black.withOpacity(0.6),
           ),
-          // Rectángulo de bienvenida
           Align(
             alignment: Alignment.topCenter,
             child: Padding(
               padding: const EdgeInsets.only(top: 150.0),
               child: FractionallySizedBox(
-                widthFactor: 1.0, // Ocupa todo el ancho de la pantalla
+                widthFactor: 1.0,
                 child: Container(
                   height: 240,
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF232526), // Negro metálico elegante
+                    color: const Color(0xFF232526),
                     borderRadius: BorderRadius.zero,
                     boxShadow: [
                       BoxShadow(
@@ -96,8 +107,8 @@ class _HomePageState extends State<HomePage> {
                     ],
                     gradient: LinearGradient(
                       colors: [
-                        Color(0xFF232526), // Gris oscuro metálico
-                        Color(0xFF414345), // Gris metálico más claro
+                        Color(0xFF232526),
+                        Color(0xFF414345),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -135,17 +146,15 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          // Carousel y contenido principal
           Padding(
             padding: const EdgeInsets.only(top: 250.0),
             child: Center(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // Calcula el ancho ideal para 5 tarjetas con separación (más pequeñas)
                   final cardSpacing = 16.0;
                   final cardsVisible = 5;
                   final cardWidth = (constraints.maxWidth * 0.70 - (cardSpacing * (cardsVisible - 1))) / cardsVisible;
-                  final cardHeight = cardWidth * 1.2; // Proporción más ancha y menos alta
+                  final cardHeight = cardWidth * 1.2;
                   return _isLoading
                       ? Center(child: CircularProgressIndicator())
                       : CarouselSlider.builder(
@@ -182,10 +191,10 @@ class _HomePageState extends State<HomePage> {
                                             if (progress == null) return child;
                                             return Center(child: CircularProgressIndicator());
                                           },
-                                          errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.broken_image, color: Colors.white)),
+                                          errorBuilder: (context, error, stackTrace) =>
+                                              Center(child: Icon(Icons.broken_image, color: Colors.white)),
                                         ),
                                       ),
-                                      // Puntuación de usuarios en la esquina superior izquierda
                                       Positioned(
                                         top: 8,
                                         left: 8,
@@ -285,7 +294,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Custom painter para la barra de progreso
 class _ScoreCirclePainter extends CustomPainter {
   final double percent;
   final Color color;
